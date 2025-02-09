@@ -1,8 +1,9 @@
 package cmd
 
 import (
+	"io"
+	"iter"
 	"os"
-	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -68,12 +69,16 @@ var getCmd = &cobra.Command{
 			case network != "":
 				network, err := res.GetNetwork(ctx, client, network)
 				handleError(cmd, err)
-				_ = networkTable.Print(ppCfg, notNil(slices.Values([]*zt.ControllerNetwork{network})))
+				handleOutput(cmd, network, func(w io.Writer, net *zt.ControllerNetwork) error {
+					return networkTable.Print(ppCfg.WithOutput(w), nonNil(network))
+				})
 
 			default:
 				networks, err := res.ListNetworks(ctx, client)
 				handleError(cmd, err)
-				_ = networkTable.Print(ppCfg, notNil(networks))
+				handleOutput(cmd, networks, func(w io.Writer, nets iter.Seq[*zt.ControllerNetwork]) error {
+					return networkTable.Print(ppCfg.WithOutput(w), nets)
+				})
 			}
 
 		case "member":
@@ -89,12 +94,16 @@ var getCmd = &cobra.Command{
 			case member != "":
 				member, err := res.GetMember(ctx, client, network, member)
 				handleError(cmd, err)
-				_ = memberTable.Print(ppCfg, notNil(slices.Values([]*zt.ControllerNetworkMember{member})))
+				handleOutput(cmd, member, func(w io.Writer, member *zt.ControllerNetworkMember) error {
+					return memberTable.Print(ppCfg.WithOutput(w), nonNil(member))
+				})
 
 			default:
 				members, err := res.ListMembers(ctx, client, network)
 				handleError(cmd, err)
-				_ = memberTable.Print(ppCfg, notNil(members))
+				handleOutput(cmd, members, func(w io.Writer, member iter.Seq[*zt.ControllerNetworkMember]) error {
+					return memberTable.Print(ppCfg.WithOutput(w), members)
+				})
 			}
 
 		default:

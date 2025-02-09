@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
 	res "github.com/vbargl/zerotier-ctl/internal/res"
+	zt "github.com/vbargl/zerotier-ctl/internal/zerotier"
 )
 
 var deleteCmd = &cobra.Command{
@@ -58,9 +61,12 @@ var deleteCmd = &cobra.Command{
 				cmd.PrintErrln("Network ID is required")
 			}
 
-			_, err := res.DeleteNetwork(ctx, client, network)
+			resp, err := res.DeleteNetwork(ctx, client, network)
 			handleError(cmd, err)
-			cmd.Printf("Network with Id '%s' deleted\n", network)
+			handleOutput(cmd, resp, func(w io.Writer, net *zt.ControllerNetwork) error {
+				_, err := fmt.Fprintf(w, "Network with Id '%s' deleted\n", network)
+				return err
+			})
 
 		case "member":
 			network, args := shift(args)
@@ -76,9 +82,12 @@ var deleteCmd = &cobra.Command{
 				os.Exit(1)
 			}
 
-			_, err := res.DeleteMember(ctx, client, network, member)
+			resp, err := res.DeleteMember(ctx, client, network, member)
 			handleError(cmd, err)
-			cmd.Printf("Member with Id '%s' deleted from network '%s'\n", member, network)
+			handleOutput(cmd, resp, func(w io.Writer, net *zt.ControllerNetworkMember) error {
+				_, err := fmt.Fprintf(w, "Member with Id '%s' deleted from network '%s'\n", member, network)
+				return err
+			})
 
 		default:
 			cmd.Printf("Unknown resource: %s\n", resource)

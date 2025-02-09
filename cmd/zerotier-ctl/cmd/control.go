@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -43,5 +44,18 @@ func handleError(cmd *cobra.Command, err error) {
 	case err != nil:
 		_, _ = fmt.Fprintf(os.Stderr, "error during execution of %s %v: %v\n", cmd.Name(), cmd.Args, err)
 		os.Exit(1)
+	}
+}
+
+func handleOutput[T any](cmd *cobra.Command, output T, formatter func(io.Writer, T) error) {
+	wantJsonOutput, _ := cmd.Flags().GetBool("json")
+
+	switch {
+	case wantJsonOutput:
+		enc := json.NewEncoder(cmd.OutOrStdout())
+		enc.SetIndent("", "  ")
+		_ = enc.Encode(output)
+	default:
+		_ = formatter(cmd.OutOrStdout(), output)
 	}
 }

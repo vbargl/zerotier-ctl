@@ -20,7 +20,7 @@ func (t *Table[T]) AddColumn(name string, f func(T) Value) {
 	t.values = append(t.values, f)
 }
 
-func (t *Table[T]) Print(cfg TablePrintConfig, all iter.Seq[T]) error {
+func (t *Table[T]) Print(cfg *TablePrintConfig, all iter.Seq[T]) error {
 	w := newWriter(cfg.Output)
 	sep := " "
 
@@ -77,4 +77,22 @@ func (t *Table[T]) Print(cfg TablePrintConfig, all iter.Seq[T]) error {
 type TablePrintConfig struct {
 	NoHeader bool
 	Output   io.Writer
+}
+
+func (cfg *TablePrintConfig) Clone() *TablePrintConfig {
+	new := &TablePrintConfig{}
+	*new = *cfg
+	return new
+}
+
+func (c *TablePrintConfig) WithNoHeader() *TablePrintConfig {
+	new := c.Clone()
+	new.NoHeader = true
+	return new
+}
+
+func (c *TablePrintConfig) WithOutput(w io.Writer) *TablePrintConfig {
+	new := c.Clone()
+	new.Output = w
+	return new
 }

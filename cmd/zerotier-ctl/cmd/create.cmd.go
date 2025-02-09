@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+	"io"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,10 +37,13 @@ var createCmd = &cobra.Command{
 		case "network":
 			resp, err := res.CreateNetwork(ctx, client, zt.ControllerNetworkRequest{})
 			handleError(cmd, err)
-			cmd.Println("Network created with ID:", resp.Id)
+			handleOutput(cmd, resp, func(w io.Writer, net *zt.ControllerNetwork) error {
+				_, err := fmt.Fprintf(w, "Network ID: %s\n", net.Id)
+				return err
+			})
 
 		default:
-			cmd.PrintErr("invalid command")
+			handleError(cmd, fmt.Errorf("invalid resource: %s", resource))
 		}
 	},
 }

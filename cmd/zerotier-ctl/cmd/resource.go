@@ -25,13 +25,13 @@ func presuf(arr iter.Seq[string], prefix, suffix string) []string {
 	})
 }
 
-func notNil[T any](all iter.Seq[*T]) iter.Seq[*T] {
+func nonNil[T any](all ...*T) iter.Seq[*T] {
 	return func(yield func(*T) bool) {
 		if all == nil {
 			return
 		}
 
-		for item := range all {
+		for _, item := range all {
 			if item != nil {
 				if !yield(item) {
 					break
